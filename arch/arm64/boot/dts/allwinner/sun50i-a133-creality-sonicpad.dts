@@ -1,0 +1,324 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Yangtao Li <frank@allwinnertech.com>
+ */
+
+/dts-v1/;
+
+#include "sun50i-a100.dtsi"
+#include "sun50i-a100-cpu-opp.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+
+/{
+	model = "Creality Sonic Pad";
+	compatible = "creality,sonic-lcd", "allwinner,sun50i-r818";
+	chassis-type = "tablet";
+
+	aliases {
+		serial0 = &uart0;
+	};
+
+	chosen {
+		stdout-path = "serial0: 115200n8";
+	};
+
+	reg_usb0_vbus: usb0-vbus {
+		compatible = "regulator-fixed";
+		gpio = <&pio 7 12 GPIO_ACTIVE_HIGH>; /* PH12 */
+		regulator-name = "usb0-vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+	};
+
+	reg_usb1_vbus: usb1-vbus {
+		compatible = "regulator-fixed";
+		gpio = <&pio 5 4 GPIO_ACTIVE_HIGH>; /* PF4 */
+		regulator-name = "usb1-vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+	};
+
+	reg_vcc5v: vcc5v {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc-5V";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		regulator-always-on;
+	};
+
+	soc {
+		syscon: syscon@3000000 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "allwinner,sun50i-h616-system-control";
+			reg = <0x03000000 0x1000>;
+			ranges;
+
+			sram_c: sram@28000 {
+				#address-cells = <1>;
+				#size-cells = <1>;
+				compatible = "mmio-sram";
+				reg = <0x00028000 0x30000>;
+				ranges = <0 0x00028000 0x30000>;
+			};
+		};
+
+		emac: ethernet@5020000 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			compatible = "allwinner,sun50i-h616-emac0",
+			             "allwinner,sun50i-a64-emac";
+			reg = <0x05020000 0x10000>;
+			interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "macirq";
+			clocks = <&ccu CLK_BUS_EMAC>;
+			clock-names = "stmmaceth";
+			resets = <&ccu RST_BUS_EMAC>;
+			reset-names = "stmmaceth";
+			status = "okay";
+			syscon = <&syscon>;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&ext_rgmii_pins>;
+			phy-handle = <&ext_rgmii_phy>;
+			phy-supply = <&reg_aldo2>;
+			phy-mode = "mii";
+
+			mdio0: mdio {
+				compatible = "snps,dwmac-mdio";
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				ext_rgmii_phy: ethernet-phy@1 {
+					compatible = "ethernet-phy-ieee802.3-c22";
+					reg = <1>;
+				};
+			};
+		};
+	};
+};
+
+&pio {
+	ext_rgmii_pins: rgmii-pins {
+		pins = "PH0",
+		       "PH1",
+		       "PH2",
+		       "PH3",
+		       "PH4",
+		       "PH5",
+		       "PH6",
+		       "PH7",
+		       "PH9",
+		       "PH10",
+		       "PH13",
+		       "PH14",
+		       "PH15",
+		       "PH16",
+		       "PH17",
+		       "PH18";
+		function = "emac0";
+		drive-strength = <30>;
+	};
+
+	usb_vbus0_pin: usb-vbus0-pin {
+		pins = "PH12";
+		function = "gpio_out";
+		drive-strength = <30>;
+		bias-disable;
+		output-low;
+	};
+
+	usb_vbus1_pin: usb-vbus1-pin {
+		pins = "PF4";
+		function = "gpio_out";
+		drive-strength = <30>;
+		bias-disable;
+		output-low;
+	};
+
+};
+
+&r_i2c0 {
+	status = "okay";
+	clock-frequency = <200000>;
+
+	pmu0: pmu@36 {
+		compatible = "x-powers,axp806";
+		interrupt-parent = <&r_intc>;
+		interrupt-controller;
+		#interrupt-cells = <1>;
+		reg = <0x36>;
+
+		x-powers,self-working-mode;
+
+		regulators {
+			reg_dcdca: dcdca {
+				regulator-always-on;
+				regulator-name = "dcdca";
+				regulator-min-microvolt = <600000>;
+				regulator-max-microvolt = <1520000>;
+			};
+
+			reg_dcdcb: dcdcb {
+				regulator-always-on;
+				regulator-name = "dcdcb";
+				regulator-min-microvolt = <1000000>;
+				regulator-max-microvolt = <2550000>;
+			};
+
+			reg_dcdcc: dcdcc {
+				regulator-always-on;
+				regulator-name = "dcdcc";
+				regulator-min-microvolt = <600000>;
+				regulator-max-microvolt = <1520000>;
+			};
+
+			reg_dcdcd: dcdcd {
+				regulator-always-on;
+				regulator-name = "vcc-dram-1";
+				regulator-min-microvolt = <1200000>;
+				regulator-max-microvolt = <1200000>;
+			};
+
+			reg_dcdce: dcdce {
+				regulator-min-microvolt = <1100000>;
+				regulator-max-microvolt = <3400000>;
+			};
+
+			reg_aldo1: aldo1 {
+				regulator-always-on;
+				regulator-name = "aldo2";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+			};
+
+			reg_aldo2: aldo2 {
+				regulator-always-on;
+				regulator-name = "emac-supply";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+			};
+
+			reg_aldo3: aldo3 {
+				regulator-always-on;
+				regulator-name = "aldo3";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+			};
+
+			reg_bldo1: bldo1 {
+				regulator-always-on;
+				regulator-name = "bldo1";
+				regulator-min-microvolt = <180000>;
+				regulator-max-microvolt = <1800000>;
+			};
+
+			reg_bldo2: bldo2 {
+				regulator-always-on;
+				regulator-name = "bldo2";
+				regulator-min-microvolt = <700000>;
+				regulator-max-microvolt = <1900000>;
+			};
+
+			reg_bldo3: bldo3 {
+				regulator-name = "bldo3";
+				regulator-min-microvolt = <700000>;
+				regulator-max-microvolt = <1900000>;
+				regulator-always-on;
+			};
+
+			reg_bldo4: bldo4 {
+				regulator-always-on;
+				regulator-name = "bldo4";
+				regulator-min-microvolt = <700000>;
+				regulator-max-microvolt = <1900000>;
+			};
+
+			reg_cldo1: cldo1 {
+				regulator-always-on;
+				regulator-name = "cldo1";
+				regulator-min-microvolt = <700000>;
+				regulator-max-microvolt = <3300000>;
+			};
+			reg_cldo2: cldo2 {
+				regulator-always-on;
+				regulator-name = "cldo2";
+				regulator-min-microvolt = <700000>;
+				regulator-max-microvolt = <4200000>;
+			};
+
+			reg_cldo3: cldo3 {
+				regulator-always-on;
+				regulator-name = "cldo3";
+				regulator-min-microvolt = <700000>;
+				regulator-max-microvolt = <3300000>;
+			};
+
+			reg_sw: sw {
+				regulator-always-on;
+				regulator-name = "sw";
+			};
+
+			reg_drivevbus: drivevbus {
+				regulator-always-on;
+				regulator-name = "drivevbus";
+				status = "okay";
+			};
+		};
+	};
+};
+
+&cpu0 {
+	cpu-supply = <&reg_dcdca>;
+};
+
+
+&mmc2 {
+	non-removable;
+	bus-width = <8>;
+	mmc-ddr-1_8v;
+	mmc-hs200-1_8v;
+	mmc-hs400-1_8v;
+	no-sdio;
+	no-sd;
+	cap-mmc-highspeed;
+	keep-power-in-suspend;
+	max-frequency = <200000000>;
+	vmmc-supply = <&reg_dcdce>;
+	vqmmc-supply = <&reg_dcdce>;
+	status = "okay";
+};
+
+&usbphy {
+
+	usb0_vbus-supply = <&reg_usb0_vbus>;
+	usb1_vbus-supply = <&reg_usb1_vbus>;
+	status = "okay";
+};
+
+
+
+&ehci0 {
+	status = "okay";
+};
+
+&ehci1 {
+	status = "okay";
+};
+
+&ohci0 {
+	status = "okay";
+};
+
+&ohci1 {
+	status = "okay";
+};
+
+&usb_otg {
+	dr_mode = "host";
+	status = "okay";
+};
