@@ -4,6 +4,7 @@
  */
 
 #include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/clock/sun6i-rtc.h>
 #include <dt-bindings/clock/sun50i-a100-ccu.h>
 #include <dt-bindings/clock/sun50i-a100-r-ccu.h>
 #include <dt-bindings/reset/sun50i-a100-ccu.h>
@@ -72,21 +73,6 @@
 		#clock-cells = <0>;
 	};
 
-	iosc: internal-osc-clk {
-		compatible = "fixed-clock";
-		clock-frequency = <16000000>;
-		clock-accuracy = <300000000>;
-		clock-output-names = "iosc";
-		#clock-cells = <0>;
-	};
-
-	osc32k: osc32k-clk {
-		compatible = "fixed-clock";
-		clock-frequency = <32768>;
-		clock-output-names = "osc32k";
-		#clock-cells = <0>;
-	};
-
 	timer {
 		compatible = "arm,armv8-timer";
 		interrupts = <GIC_PPI 13
@@ -108,7 +94,7 @@
 		ccu: clock@3001000 {
 			compatible = "allwinner,sun50i-a100-ccu";
 			reg = <0x03001000 0x1000>;
-			clocks = <&dcxo24M>, <&osc32k>, <&iosc>;
+			clocks = <&dcxo24M>, <&rtc CLK_OSC32K>, <&rtc CLK_IOSC>;
 			clock-names = "hosc", "losc", "iosc";
 			#clock-cells = <1>;
 			#reset-cells = <1>;
@@ -170,7 +156,7 @@
 				     <GIC_SPI 58 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&ccu CLK_APB1>, <&dcxo24M>, <&osc32k>;
+			clocks = <&ccu CLK_APB1>, <&dcxo24M>, <&rtc CLK_OSC32K>;
 			clock-names = "apb", "hosc", "losc";
 			gpio-controller;
 			#gpio-cells = <3>;
@@ -472,11 +458,24 @@
 			status = "disabled";
 		};
 
+		rtc: rtc@7000000 {
+			compatible = "allwinner,sun50i-a100-rtc";
+			reg = <0x07000000 0x400>;
+			interrupts = <GIC_SPI 108 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&r_ccu CLK_R_AHB_BUS_RTC>,
+			         <&dcxo24M>,
+			         <&r_ccu CLK_R_APB1>;
+			clock-names = "bus", "hosc", "ahb";
+			#clock-cells = <1>;
+		};
+
 		r_ccu: clock@7010000 {
 			compatible = "allwinner,sun50i-a100-r-ccu";
 			reg = <0x07010000 0x300>;
-			clocks = <&dcxo24M>, <&osc32k>, <&iosc>,
-				 <&ccu CLK_PLL_PERIPH0>;
+			clocks = <&dcxo24M>,
+			         <&rtc CLK_OSC32K>,
+			         <&rtc CLK_IOSC>,
+			         <&ccu CLK_PLL_PERIPH0>;
 			clock-names = "hosc", "losc", "iosc", "pll-periph";
 			#clock-cells = <1>;
 			#reset-cells = <1>;
@@ -495,7 +494,7 @@
 			compatible = "allwinner,sun50i-a100-r-pinctrl";
 			reg = <0x07022000 0x400>;
 			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&r_ccu CLK_R_APB1>, <&dcxo24M>, <&osc32k>;
+			clocks = <&r_ccu CLK_R_APB1>, <&dcxo24M>, <&rtc CLK_OSC32K>;
 			clock-names = "apb", "hosc", "losc";
 			gpio-controller;
 			#gpio-cells = <3>;
