@@ -383,10 +383,6 @@ static void __init sun50i_h6_rtc_clk_init(struct device_node *node)
 CLK_OF_DECLARE_DRIVER(sun50i_h6_rtc_clk, "allwinner,sun50i-h6-rtc",
 		      sun50i_h6_rtc_clk_init);
 
-/* A100 has the same quirks as the H6, except it only has one alarm. */
-CLK_OF_DECLARE_DRIVER(sun50i_a100_rtc_clk, "allwinner,sun50i-a100-rtc",
-		      sun50i_h6_rtc_clk_init);
-
 /*
  * The R40 user manual is self-conflicting on whether the prescaler is
  * fixed or configurable. The clock diagram shows it as fixed, but there
