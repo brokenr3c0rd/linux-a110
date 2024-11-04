@@ -10,7 +10,7 @@
 #include <dt-bindings/reset/sun50i-a100-ccu.h>
 #include <dt-bindings/reset/sun50i-a100-r-ccu.h>
 
-/ {
+/{
 	interrupt-parent = <&gic>;
 	#address-cells = <2>;
 	#size-cells = <2>;
@@ -90,6 +90,38 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		ranges = <0 0 0 0x3fffffff>;
+
+		syscon: syscon@3000000 {
+			compatible = "allwinner,sun50i-a64-system-control";
+			reg = <0x03000000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges;
+
+			sram_a1: sram@20000 {
+				compatible = "mmio-sram";
+				reg = <0x00020000 0x4000>;
+				#address-cells = <1>;
+				#size-cells = <1>;
+				ranges = <0 0x00020000 0x4000>;
+			};
+
+			sram_c: sram@24000 {
+				compatible = "mmio-sram";
+				reg = <0x024000 0x21000>;
+				#address-cells = <1>;
+				#size-cells = <1>;
+				ranges = <0 0x024000 0x21000>;
+			};
+
+			sram_a2: sram@100000 {
+				compatible = "mmio-sram";
+				reg = <0x0100000 0x14000>;
+				#address-cells = <1>;
+				#size-cells = <1>;
+				ranges = <0 0x0100000 0x14000>;
+			};
+		};
 
 		ccu: clock@3001000 {
 			compatible = "allwinner,sun50i-a100-ccu";
@@ -192,6 +224,15 @@
 			uart0_pb_pins: uart0-pb-pins {
 				pins = "PB9", "PB10";
 				function = "uart0";
+			};
+
+			rgmii_pins: rgmii-pins {
+				pins = "PH0", "PH1", "PH2", "PH3",
+					"PH4", "PH5", "PH6", "PH7",
+					"PH9", "PH10", "PH13", "PH14",
+					"PH15", "PH16", "PH17", "PH18";
+				function = "emac0";
+				drive-strength = <40>;
 			};
 		};
 
@@ -353,6 +394,25 @@
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
+		};
+
+		emac: ethernet@5020000 {
+			compatible = "allwinner,sun50i-a100-emac";
+			syscon = <&syscon>;
+			reg = <0x05020000 0x10000>;
+			interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "macirq";
+			resets = <&ccu RST_BUS_EMAC>;
+			reset-names = "stmmaceth";
+			clocks = <&ccu CLK_BUS_EMAC>;
+			clock-names = "stmmaceth";
+			status = "disabled";
+
+			mdio: mdio {
+				compatible = "snps,dwmac-mdio";
+				#address-cells = <1>;
+				#size-cells = <0>;
+			};
 		};
 
 		ths: thermal-sensor@5070400 {
