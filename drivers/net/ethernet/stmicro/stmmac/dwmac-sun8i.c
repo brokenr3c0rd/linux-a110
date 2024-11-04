@@ -140,6 +140,17 @@ static const struct emac_variant emac_variant_a64 = {
 	.tx_delay_max = 7,
 };
 
+static const struct emac_variant emac_variant_a100 = {
+	.default_syscon_value = 0x58000,
+	.syscon_field = &sun8i_syscon_reg_field,
+	.soc_has_internal_phy = false,
+	.support_mii = false,
+	.support_rmii = true,
+	.support_rgmii = true,
+	.rx_delay_max = 31,
+	.tx_delay_max = 7,
+};
+
 static const struct emac_variant emac_variant_h6 = {
 	.default_syscon_value = 0x50000,
 	.syscon_field = &sun8i_syscon_reg_field,
@@ -1333,6 +1344,8 @@ static const struct of_device_id sun8i_dwmac_match[] = {
 		.data = &emac_variant_a83t },
 	{ .compatible = "allwinner,sun8i-r40-gmac",
 		.data = &emac_variant_r40 },
+	{ .compatible = "allwinner,sun50i-a100-emac",
+		.data = &emac_variant_a100 },
 	{ .compatible = "allwinner,sun50i-a64-emac",
 		.data = &emac_variant_a64 },
 	{ .compatible = "allwinner,sun50i-h6-emac",
