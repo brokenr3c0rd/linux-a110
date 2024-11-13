@@ -197,6 +197,11 @@ properties:
           - const: colorfly,e708-q1
           - const: allwinner,sun6i-a31s
 
+      - description: Creality Sonic Pad
+        items:
+          - const: creality,sonic-pad
+          - const: allwinner,sun50i-a100
+
       - description: CSQ CS908 Set Top Box
         items:
           - const: csq,cs908
